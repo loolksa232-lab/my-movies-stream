@@ -26,38 +26,30 @@
     <script>
         var video = document.getElementById('video');
         
-        // رابط ملف الـ M3U8 مباشرة مع تجاوز CORS عبر بروكسي سريع
-        var rawM3u8Url = 'https://raw.githubusercontent.com/loolksa232-lab/my-movies-stream/main/stream.m3u8';
-        var m3u8Url = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(rawM3u8Url);
+        // رابط ملف الـ M3U8 المباشر من مستودعك بدون أي بروكسي
+        var m3u8Url = 'https://raw.githubusercontent.com/loolksa232-lab/my-movies-stream/main/stream.m3u8';
 
         if (Hls.isSupported()) {
-            var hls = new Hls({
-                xhrSetup: function (xhr, url) {
-                    // توجيه طلبات الـ ts عبر البروكسي لتجنب حظر CORS تماماً
-                    if (url.endsWith('.ts') || url.includes('.ts?')) {
-                        // إذا كانت روابط الـ ts نسبية، اربطها برابط المستودع الأساسي
-                        if (!url.startsWith('http')) {
-                            url = 'https://raw.githubusercontent.com/loolksa232-lab/my-movies-stream/main/' + url;
-                        }
-                        xhr.open('GET', 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url), true);
-                    }
-                }
-            });
-
+            var hls = new Hls();
             hls.loadSource(m3u8Url);
             hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                video.play().catch(e => console.log("Play error:", e));
-            });
             
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play().catch(function(e) {
+                    console.log("Autoplay blocked:", e);
+                });
+            });
+
             hls.on(Hls.Events.ERROR, function(event, data) {
-                console.log("HLS Error:", data);
+                console.log("HLS Error details:", data);
             });
         } 
         else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = rawM3u8Url;
+            video.src = m3u8Url;
             video.addEventListener('loadedmetadata', function() {
-                video.play().catch(e => console.log("Play error:", e));
+                video.play().catch(function(e) {
+                    console.log("Autoplay blocked:", e);
+                });
             });
         }
     </script>
