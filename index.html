@@ -44,33 +44,32 @@
         document.addEventListener('DOMContentLoaded', function() {
             var player = videojs('my-video', {
                 autoplay: true,
-                muted: true, // صامت عند البداية لتجاوز منع المتصفحات للتشغيل التلقائي (يمكن للمشاهد رفع الصوت لاحقاً)
+                muted: true, // صامت لتجاوز منع التشغيل التلقائي بالمتصفحات
                 responsive: true,
                 fill: true
             });
 
-            // ⚠️ ضع هنا روابط أفلام الـ MP4 المباشرة الخاصة بك بين الأقواس
-            var playlist = [
-                'https://archive.org/download/example_movie1/movie1.mp4',
-                'https://archive.org/download/example_movie2/movie2.mp4'
-            ];
-            
-            var currentIndex = 0;
+            // رابط ملف الـ m3u8 الخاص بك على GitHub ممرراً عبر بروكسي CORS لتجاوز الحظر
+            var rawM3u8Url = 'https://raw.githubusercontent.com/loolksa232-lab/my-movies-stream/main/stream.m3u8';
+            var proxyM3u8Url = 'https://corsproxy.io/?' + encodeURIComponent(rawM3u8Url);
 
-            if (playlist.length > 0) {
-                player.src({ type: 'video/mp4', src: playlist[currentIndex] });
-            }
+            // تحميل ملف الـ M3U8 وتشغيله
+            player.src({
+                src: proxyM3u8Url,
+                type: 'application/x-mpegURL'
+            });
 
-            // الانتقال للفيلم التالي تلقائياً، وعند الوصول للنهاية تعيد القائمة من البداية (تكرار للأبد)
+            player.play().catch(function(err) {
+                console.log("Play error:", err);
+            });
+
+            // التكرار التلقائي للقائمة عند انتهائها
             player.on('ended', function() {
-                currentIndex++;
-                if (currentIndex >= playlist.length) {
-                    currentIndex = 0; // العودة للفيلم الأول
-                }
-                player.src({ type: 'video/mp4', src: playlist[currentIndex] });
-                player.play().catch(function(err) {
-                    console.log("Play error:", err);
+                player.src({
+                    src: proxyM3u8Url,
+                    type: 'application/x-mpegURL'
                 });
+                player.play();
             });
         });
     </script>
