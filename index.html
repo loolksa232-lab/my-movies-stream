@@ -3,60 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>My Movies Stream</title>
-    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <title>HLS Stream Player</title>
+    <!-- مكتبة HLS.js الأساسية لتشغيل ملفات ts و m3u8 -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         html, body {
-            margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; overflow: hidden;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
         }
-        .player-wrapper {
-            width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center;
+        .player-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        .video-js { width: 100% !important; height: 100% !important; }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
     </style>
 </head>
 <body>
 
-    <div class="player-wrapper">
-        <video-js id="my-video" class="vjs-big-play-centered" controls preload="auto" playsinline>
-            <p class="vjs-no-js">يرجى تفعيل جافاسكريبت لعرض هذا الفيديو</p>
-        </video-js>
+    <div class="player-container">
+        <video id="video" controls autoplay playsinline></video>
     </div>
 
-    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var player = videojs('my-video', {
-                autoplay: true,
-                muted: false,
-                responsive: true,
-                fill: true
+        var video = document.getElementById('video');
+        
+        // رابط ملف الـ m3u8 الخاص بك على GitHub (ممرراً عبر بروكسي لتجاوز حظر CORS وسحب ملفات الـ ts)
+        var rawM3u8Url = 'https://raw.githubusercontent.com/loolksa232-lab/my-movies-stream/main/stream.m3u8';
+        var m3u8Url = 'https://corsproxy.io/?' + encodeURIComponent(rawM3u8Url);
+
+        if (Hls.isSupported()) {
+            var hls = new Hls({
+                maxBufferLength: 30,
+                maxMaxBufferLength: 60
             });
-
-            // ضع روابط أفلامك المباشرة هنا بين العلامات (استبدل الروابط المؤقتة بروابطك)
-            var playlist = [
-                'https://archive.org/download/Arabic.Movies.Collection.VIU.WEB-DL.1080p/1000.Mabrook.VIU.WEB-DL.1080p.mp4',
-                'https://archive.org/download/Arabic.Movies.Collection.VIU.WEB-DL.1080p/3sal.Eswed.VIU.WEB-DL.1080p.mp4'
-            ];
-            
-            var currentIndex = 0;
-
-            if (playlist.length > 0) {
-                player.src({ type: 'video/mp4', src: playlist[currentIndex] });
-            }
-
-            // تشغيل الفيلم التالي تلقائياً وإعادة القائمة للأبد
-            player.on('ended', function() {
-                currentIndex++;
-                if (currentIndex >= playlist.length) {
-                    currentIndex = 0;
-                }
-                player.src({ type: 'video/mp4', src: playlist[currentIndex] });
-                player.play().catch(function(err) {
-                    console.log("Play error:", err);
+            hls.loadSource(m3u8Url);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play().catch(function(e) {
+                    console.log("Autoplay blocked:", e);
                 });
             });
-        });
+            // إعادة محاولة التحميل تلقائياً في حال حدوث انقطاع في الـ ts
+            hls.on(Hls.Events.ERROR, function(event, data) {
+                if (data.fatal) {
+                    switch(data.type) {
+                        case Hls.ErrorTypes.NETWORK_ERROR:
+                            hls.startLoad();
+                            break;
+                        case Hls.ErrorTypes.MEDIA_ERROR:
+                            hls.recoverMediaError();
+                            break;
+                        default:
+                            hls.destroy();
+                            break;
+                    }
+                }
+            });
+        } 
+        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            // لدعم أجهزة أبل وسفاري التي تشغل HLS نظامياً
+            video.src = m3u8Url;
+            video.addEventListener('loadedmetadata', function() {
+                video.play().catch(function(e) {
+                    console.log("Autoplay blocked:", e);
+                });
+            });
+        }
     </script>
 
 </body>
