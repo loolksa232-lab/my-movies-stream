@@ -28,42 +28,9 @@
             width: 100% !important;
             height: 100% !important;
         }
-
-        /* طبقة تفاعل لضمان عمل الصوت والتلقائي فور فتح الرابط */
-        #unmute-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 99999;
-            color: white;
-            font-family: Tahoma, sans-serif;
-            cursor: pointer;
-            transition: opacity 0.3s ease;
-        }
-
-        .play-btn-box {
-            background: #e50914;
-            padding: 15px 35px;
-            border-radius: 30px;
-            font-size: 20px;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
-        }
     </style>
 </head>
 <body>
-
-    <!-- طبقة شفافة تضمن تشغيل الفيديو بالصوت فوراً بأول ضغطة (أو تلقائياً إن سمح المتصفح) -->
-    <div id="unmute-overlay" onclick="startPlayback()">
-        <div class="play-btn-box">▶ اضغط هنا للبدء بالصوت</div>
-    </div>
 
     <div class="player-wrapper">
         <video-js id="my-video" class="vjs-big-play-centered" controls preload="auto" playsinline>
@@ -74,33 +41,26 @@
     <!-- مكتبة Video.js -->
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script>
-        var player;
-        var m3u8Url = 'https://raw.githubusercontent.com/loolksa232-lab/my-movies-stream/main/stream.m3u8';
-
         document.addEventListener('DOMContentLoaded', function() {
-            player = videojs('my-video', {
-                autoplay: true,      // محاولة التشغيل التلقائي
-                muted: false,        // تشغيل الصوت (غير مكتوم)
+            var player = videojs('my-video', {
+                autoplay: true,      // تشغيل تلقائي فور فتح الرابط
+                muted: true,         // كتم الصوت افتراضياً لضمان نجاح التشغيل التلقائي بالمتصفحات
                 responsive: true,
                 fill: true
             });
+
+            // رابط ملف m3u8 المباشر الخاص بك على GitHub
+            var m3u8Url = 'https://raw.githubusercontent.com/loolksa232-lab/my-movies-stream/main/stream.m3u8';
 
             player.src({
                 src: m3u8Url,
                 type: 'application/x-mpegURL'
             });
 
-            // محاولة التشغيل فوراً برمجياً
-            var playPromise = player.play();
-            if (playPromise !== undefined) {
-                playPromise.then(_ => {
-                    // إذا سمح المتصفح بالتشغيل التلقائي بالصوت، اخفِ طبقة النقر فوراً
-                    document.getElementById('unmute-overlay').style.display = 'none';
-                }).catch(error => {
-                    // إذا قام المتصفح بحظر التشغيل التلقائي بالصوت، اترك زر النقر البسيط للزائر
-                    console.log("Autoplay with sound blocked by browser, waiting for user interaction.");
-                });
-            }
+            // محاولة التشغيل فوراً
+            player.play().catch(function(error) {
+                console.log("Autoplay prevented:", error);
+            });
 
             // التكرار التلقائي للقائمة فور انتهائها
             player.on('ended', function() {
@@ -108,16 +68,6 @@
                 player.play();
             });
         });
-
-        // دالة تبدأ التشغيل فور النقر في أي مكان (لتخطي حظر المتصفحات للصوت التلقائي)
-        function startPlayback() {
-            player.muted(false);
-            player.play();
-            document.getElementById('unmute-overlay').style.opacity = '0';
-            setTimeout(function() {
-                document.getElementById('unmute-overlay').style.display = 'none';
-            }, 300);
-        }
     </script>
 
 </body>
