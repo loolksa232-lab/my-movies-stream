@@ -25,33 +25,48 @@
 
     <script>
         var video = document.getElementById('video');
+        var githubM3u8Url = 'https://raw.githubusercontent.com/loolksa232-lab/my-movies-stream/main/stream.m3u8';
         
-        // رابط ملف الـ M3U8 المباشر من مستودعك بدون أي بروكسي
-        var m3u8Url = 'https://raw.githubusercontent.com/loolksa232-lab/my-movies-stream/main/stream.m3u8';
+        // استخدام خدمة AllOrigins لجلب محتوى ملف الـ M3U8 متجاوزاً حظر CORS الخاص بـ GitHub
+        var proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(githubM3u8Url);
 
-        if (Hls.isSupported()) {
-            var hls = new Hls();
-            hls.loadSource(m3u8Url);
-            hls.attachMedia(video);
-            
-            hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                video.play().catch(function(e) {
-                    console.log("Autoplay blocked:", e);
-                });
-            });
+        fetch(proxyUrl)
+            .then(function(response) {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.text();
+            })
+            .then(function(m3u8Text) {
+                // تحويل محتوى الملف النصي إلى رابط Blob محلي داخل المتصفح
+                var blob = new Blob([m3u8Text], { type: 'application/vnd.apple.mpegurl' });
+                var blobUrl = URL.createObjectURL(blob);
 
-            hls.on(Hls.Events.ERROR, function(event, data) {
-                console.log("HLS Error details:", data);
+                if (Hls.isSupported()) {
+                    var hls = new Hls();
+                    hls.loadSource(blobUrl);
+                    hls.attachMedia(video);
+                    
+                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        video.play().catch(function(e) {
+                            console.log("Autoplay blocked:", e);
+                        });
+                    });
+
+                    hls.on(Hls.Events.ERROR, function(event, data) {
+                        console.log("HLS Error:", data);
+                    });
+                } 
+                else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = blobUrl;
+                    video.addEventListener('loadedmetadata', function() {
+                        video.play().catch(function(e) {
+                            console.log("Autoplay blocked:", e);
+                        });
+                    });
+                }
+            })
+            .catch(function(err) {
+                console.error("فشل في جلب ملف الـ M3U8:", err);
             });
-        } 
-        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = m3u8Url;
-            video.addEventListener('loadedmetadata', function() {
-                video.play().catch(function(e) {
-                    console.log("Autoplay blocked:", e);
-                });
-            });
-        }
     </script>
 
 </body>
