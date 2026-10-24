@@ -25,32 +25,41 @@
 
     <script>
         var video = document.getElementById('video');
-        var rawM3u8Url = 'https://raw.githubusercontent.com/loolksa232-lab/my-movies-stream/main/stream.m3u8';
         
-        // جلب محتوى ملف m3u8 وتحويله محلياً لتجاوز حظر CORS نهائياً
-        fetch('https://corsproxy.io/?' + encodeURIComponent(rawM3u8Url))
-            .then(response => response.text())
-            .then(m3u8Content => {
-                // إنشاء ملف محلي وهمي (Blob) من محتوى الـ M3U8
-                var blob = new Blob([m3u8Content], { type: 'application/x-mpegURL' });
-                var blobUrl = URL.createObjectURL(blob);
+        // رابط ملف الـ M3U8 مباشرة مع تجاوز CORS عبر بروكسي سريع
+        var rawM3u8Url = 'https://raw.githubusercontent.com/loolksa232-lab/my-movies-stream/main/stream.m3u8';
+        var m3u8Url = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(rawM3u8Url);
 
-                if (Hls.isSupported()) {
-                    var hls = new Hls();
-                    hls.loadSource(blobUrl);
-                    hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                        video.play().catch(e => console.log("Play error:", e));
-                    });
-                } 
-                else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = blobUrl;
-                    video.addEventListener('loadedmetadata', function() {
-                        video.play().catch(e => console.log("Play error:", e));
-                    });
+        if (Hls.isSupported()) {
+            var hls = new Hls({
+                xhrSetup: function (xhr, url) {
+                    // توجيه طلبات الـ ts عبر البروكسي لتجنب حظر CORS تماماً
+                    if (url.endsWith('.ts') || url.includes('.ts?')) {
+                        // إذا كانت روابط الـ ts نسبية، اربطها برابط المستودع الأساسي
+                        if (!url.startsWith('http')) {
+                            url = 'https://raw.githubusercontent.com/loolksa232-lab/my-movies-stream/main/' + url;
+                        }
+                        xhr.open('GET', 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url), true);
+                    }
                 }
-            })
-            .catch(err => console.log("خطأ في قراءة ملف البث:", err));
+            });
+
+            hls.loadSource(m3u8Url);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play().catch(e => console.log("Play error:", e));
+            });
+            
+            hls.on(Hls.Events.ERROR, function(event, data) {
+                console.log("HLS Error:", data);
+            });
+        } 
+        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = rawM3u8Url;
+            video.addEventListener('loadedmetadata', function() {
+                video.play().catch(e => console.log("Play error:", e));
+            });
+        }
     </script>
 
 </body>
