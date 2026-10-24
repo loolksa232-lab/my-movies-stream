@@ -40,15 +40,14 @@
         document.addEventListener('DOMContentLoaded', function() {
             var player = videojs('my-video', {
                 autoplay: true,
-                muted: false, // محاولة تشغيل الصوت (إذا حظره المتصفح يمكنك تشغيله يدوياً من زر الصوت بالمشغل)
+                muted: false,
                 responsive: true,
                 fill: true
             });
 
-            // ضع روابط أفلامك المباشرة هنا (أزل الروابط التجريبية وضع روابطك الحقيقية)
+            // قائمة تشغيل تحتوي على رابط فيديو حقيقي ومباشر للتجربة والتأكد من العمل
             var playlist = [
-                'https://archive.org/download/example_movie1/movie1.mp4',
-                'https://archive.org/download/example_movie2/movie2.mp4'
+                'https://www.w3schools.com/html/mov_bbb.mp4'
             ];
             
             var currentIndex = 0;
@@ -57,11 +56,10 @@
                 player.src({ type: 'video/mp4', src: playlist[currentIndex] });
             }
 
-            // التبديل التلقائي للفيلم التالي وإعادة التشغيل للأبد (Loop)
             player.on('ended', function() {
                 currentIndex++;
                 if (currentIndex >= playlist.length) {
-                    currentIndex = 0; // العودة لأول القائمة
+                    currentIndex = 0;
                 }
                 player.src({ type: 'video/mp4', src: playlist[currentIndex] });
                 player.play().catch(function(err) {
