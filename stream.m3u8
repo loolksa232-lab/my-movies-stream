@@ -1,22 +1,13 @@
 #EXTM3U
 #EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:10
+#EXT-X-MEDIA-SEQUENCE:0
 
-# --- الدورة الأولى ---
-#EXTINF:7200, الفيلم الأول
+#EXTINF:10.000,
 https://archive.org/download/Arabic.Movies.Collection.VIU.WEB-DL.1080p/1000.Mabrook.VIU.WEB-DL.1080p.ts
-#EXTINF:7200, الفيلم الثاني
-https://archive.org/download/Arabic.Movies.Collection.VIU.WEB-DL.1080p/3sal.Eswed.VIU.WEB-DL.1080p.ts
-#EXTINF:7200, الفيلم الثالث
-https://archive.org/download/Arabic.Movies.Collection.VIU.WEB-DL.1080p/Al.Aslyeen.VIU.WEB-DL.1080p.ts
-#EXTINF:7200, الفيلم الرابع
-https://archive.org/download/Arabic.Movies.Collection.VIU.WEB-DL.1080p/Al.Hafla.VIU.WEB-DL.1080p.ts
-# --- تكرار الدورة ---
-#EXTINF:7200, الفيلم الأول
-https://archive.org/download/Arabic.Movies.Collection.VIU.WEB-DL.1080p/1000.Mabrook.VIU.WEB-DL.1080p.ts
-#EXTINF:7200, الفيلم الثاني
-https://archive.org/download/Arabic.Movies.Collection.VIU.WEB-DL.1080p/3sal.Eswed.VIU.WEB-DL.1080p.ts
-#EXTINF:7200, الفيلم الثالث
-https://archive.org/download/Arabic.Movies.Collection.VIU.WEB-DL.1080p/Al.Aslyeen.VIU.WEB-DL.1080p.ts
-#EXTINF:7200, الفيلم الرابع
-https://archive.org/download/Arabic.Movies.Collection.VIU.WEB-DL.1080p/Al.Hafla.VIU.WEB-DL.1080p.ts
+#EXTINF:10.000,
+https://archive.org/download/Arabic.Movies.Collection.VIU.WEB-DL.1080p/Balash.Tebosny.VIU.WEB-DL.1080p.ts
+#EXTINF:10.000,
+https://archive.org/download/Arabic.Movies.Collection.VIU.WEB-DL.1080p/Ehky.Ya.Shahrazad.VIU.WEB-DL.1080p.ts
 
+#EXT-X-ENDLIST
