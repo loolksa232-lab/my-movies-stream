@@ -33,38 +33,28 @@
                 fill: true
             });
 
-            var playlist = [];
+            // ضع روابط أفلامك المباشرة هنا بين العلامات (استبدل الروابط المؤقتة بروابطك)
+            var playlist = [
+                'https://archive.org/download/Arabic.Movies.Collection.VIU.WEB-DL.1080p/1000.Mabrook.VIU.WEB-DL.1080p.mp4',
+                'https://archive.org/download/Arabic.Movies.Collection.VIU.WEB-DL.1080p/3sal.Eswed.VIU.WEB-DL.1080p.mp4'
+            ];
+            
             var currentIndex = 0;
 
-            var m3u8Url = 'https://raw.githubusercontent.com/loolksa232-lab/my-movies-stream/main/stream.m3u8';
-            var proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(m3u8Url);
+            if (playlist.length > 0) {
+                player.src({ type: 'video/mp4', src: playlist[currentIndex] });
+            }
 
-            fetch(proxyUrl)
-                .then(response => response.text())
-                .then(data => {
-                    var lines = data.split('\n');
-                    for (var i = 0; i < lines.length; i++) {
-                        var line = lines[i].trim();
-                        if (line && !line.startsWith('#')) {
-                            playlist.push(line);
-                        }
-                    }
-
-                    if (playlist.length > 0) {
-                        player.src({ type: 'video/mp4', src: playlist[currentIndex] });
-                        player.play().catch(e => console.log("Play error:", e));
-                    }
-                })
-                .catch(err => console.log("خطأ في جلب ملف m3u8:", err));
-
+            // تشغيل الفيلم التالي تلقائياً وإعادة القائمة للأبد
             player.on('ended', function() {
-                if (playlist.length === 0) return;
                 currentIndex++;
                 if (currentIndex >= playlist.length) {
                     currentIndex = 0;
                 }
                 player.src({ type: 'video/mp4', src: playlist[currentIndex] });
-                player.play().catch(err => console.log("Play error:", err));
+                player.play().catch(function(err) {
+                    console.log("Play error:", err);
+                });
             });
         });
     </script>
