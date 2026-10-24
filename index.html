@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Video Player</title>
-    <!-- تضمين تصميم مشغل Video.js -->
+    <title>My Movies Stream</title>
     <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
     <style>
         html, body {
@@ -15,7 +14,6 @@
             background-color: #000;
             overflow: hidden;
         }
-
         .player-wrapper {
             width: 100vw;
             height: 100vh;
@@ -23,7 +21,6 @@
             justify-content: center;
             align-items: center;
         }
-
         .video-js {
             width: 100% !important;
             height: 100% !important;
@@ -38,38 +35,38 @@
         </video-js>
     </div>
 
-    <!-- مكتبة Video.js -->
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var player = videojs('my-video', {
                 autoplay: true,
-                muted: true, // صامت لتجاوز منع التشغيل التلقائي بالمتصفحات
+                muted: false, // محاولة تشغيل الصوت (إذا حظره المتصفح يمكنك تشغيله يدوياً من زر الصوت بالمشغل)
                 responsive: true,
                 fill: true
             });
 
-            // رابط ملف الـ m3u8 الخاص بك على GitHub ممرراً عبر بروكسي CORS لتجاوز الحظر
-            var rawM3u8Url = 'https://raw.githubusercontent.com/loolksa232-lab/my-movies-stream/main/stream.m3u8';
-            var proxyM3u8Url = 'https://corsproxy.io/?' + encodeURIComponent(rawM3u8Url);
+            // ضع روابط أفلامك المباشرة هنا (أزل الروابط التجريبية وضع روابطك الحقيقية)
+            var playlist = [
+                'https://archive.org/download/example_movie1/movie1.mp4',
+                'https://archive.org/download/example_movie2/movie2.mp4'
+            ];
+            
+            var currentIndex = 0;
 
-            // تحميل ملف الـ M3U8 وتشغيله
-            player.src({
-                src: proxyM3u8Url,
-                type: 'application/x-mpegURL'
-            });
+            if (playlist.length > 0) {
+                player.src({ type: 'video/mp4', src: playlist[currentIndex] });
+            }
 
-            player.play().catch(function(err) {
-                console.log("Play error:", err);
-            });
-
-            // التكرار التلقائي للقائمة عند انتهائها
+            // التبديل التلقائي للفيلم التالي وإعادة التشغيل للأبد (Loop)
             player.on('ended', function() {
-                player.src({
-                    src: proxyM3u8Url,
-                    type: 'application/x-mpegURL'
+                currentIndex++;
+                if (currentIndex >= playlist.length) {
+                    currentIndex = 0; // العودة لأول القائمة
+                }
+                player.src({ type: 'video/mp4', src: playlist[currentIndex] });
+                player.play().catch(function(err) {
+                    console.log("Play error:", err);
                 });
-                player.play();
             });
         });
     </script>
