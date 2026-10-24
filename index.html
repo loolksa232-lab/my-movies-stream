@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>M3U8 Stream Player</title>
+    <!-- مكتبة HLS.js لتشغيل البث الحقيقي -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         html, body {
@@ -25,48 +26,55 @@
 
     <script>
         var video = document.getElementById('video');
-        var githubM3u8Url = 'https://raw.githubusercontent.com/loolksa232-lab/my-movies-stream/main/stream.m3u8';
         
-        // استخدام خدمة AllOrigins لجلب محتوى ملف الـ M3U8 متجاوزاً حظر CORS الخاص بـ GitHub
-        var proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(githubM3u8Url);
+        // استخدام رابط jsDelivr المعتمد رسمياً لملفات جيت هاب والذي يدعم CORS 100% بدون حظر
+        var m3u8Url = 'https://cdn.jsdelivr.net/gh/loolksa232-lab/my-movies-stream@main/stream.m3u8';
 
-        fetch(proxyUrl)
-            .then(function(response) {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.text();
-            })
-            .then(function(m3u8Text) {
-                // تحويل محتوى الملف النصي إلى رابط Blob محلي داخل المتصفح
-                var blob = new Blob([m3u8Text], { type: 'application/vnd.apple.mpegurl' });
-                var blobUrl = URL.createObjectURL(blob);
-
-                if (Hls.isSupported()) {
-                    var hls = new Hls();
-                    hls.loadSource(blobUrl);
-                    hls.attachMedia(video);
-                    
-                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                        video.play().catch(function(e) {
-                            console.log("Autoplay blocked:", e);
-                        });
-                    });
-
-                    hls.on(Hls.Events.ERROR, function(event, data) {
-                        console.log("HLS Error:", data);
-                    });
-                } 
-                else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = blobUrl;
-                    video.addEventListener('loadedmetadata', function() {
-                        video.play().catch(function(e) {
-                            console.log("Autoplay blocked:", e);
-                        });
-                    });
+        if (Hls.isSupported()) {
+            var hls = new Hls({
+                maxBufferLength: 30,
+                maxMaxBufferLength: 60,
+                xhrSetup: function (xhr, url) {
+                    // السماح بطلب الشرائح بدون قيود
+                    xhr.withCredentials = false;
                 }
-            })
-            .catch(function(err) {
-                console.error("فشل في جلب ملف الـ M3U8:", err);
             });
+
+            hls.loadSource(m3u8Url);
+            hls.attachMedia(video);
+            
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play().catch(function(e) {
+                    console.log("Autoplay blocked:", e);
+                });
+            });
+
+            hls.on(Hls.Events.ERROR, function(event, data) {
+                console.error("HLS Error encountered:", data);
+                if (data.fatal) {
+                    switch(data.type) {
+                        case Hls.ErrorTypes.NETWORK_ERROR:
+                            hls.startLoad();
+                            break;
+                        case Hls.ErrorTypes.MEDIA_ERROR:
+                            hls.recoverMediaError();
+                            break;
+                        default:
+                            hls.destroy();
+                            break;
+                    }
+                }
+            });
+        } 
+        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            // لدعم أجهزة أافل و Safari
+            video.src = m3u8Url;
+            video.addEventListener('loadedmetadata', function() {
+                video.play().catch(function(e) {
+                    console.log("Autoplay blocked:", e);
+                });
+            });
+        }
     </script>
 
 </body>
